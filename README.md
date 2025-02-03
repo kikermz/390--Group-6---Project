@@ -1,17 +1,10 @@
 ## Getting Started
+*Need to have next js/ node js installed to run
 
-First, run the development server:
-
-```bash
+create the next app by running
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+using link as the way to view the page
+http://localhost:3000
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
