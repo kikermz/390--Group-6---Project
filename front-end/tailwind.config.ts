@@ -9,8 +9,8 @@ export default {
   theme: {
     extend: {
       colors: {
-      borderPurp: "#301e48",
-      hoverPurp: "#dacfea",
+        background: "var(--background)",
+        foreground: "var(--foreground)",
       },
     },
   },
