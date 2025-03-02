@@ -1,29 +1,41 @@
 const express = require("express");
+const mysql = require("mysql2");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// Fake user credentials (replace with database logic later)
-const users = [
-    { username: "admin", password: "password123" },
-    { username: "user1", password: "mypassword" }
-];
+// Connect to MySQL
+const db = mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    password: "password", // Add your MySQL root password if set
+    database: "userDB"
+});
+
+db.connect(err => {
+    if (err) {
+        console.error("❌ MySQL connection failed:", err);
+    } else {
+        console.log("✅ Connected to MySQL");
+    }
+});
 
 // Login Route
 app.post("/login", (req, res) => {
     const { username, password } = req.body;
-    
-    const user = users.find(u => u.username === username && u.password === password);
-    
-    if (user) {
-        res.json({ success: true, message: "Login successful!" });
-    } else {
-        res.json({ success: false, message: "Invalid credentials." });
-    }
+
+    db.query("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, results) => {
+        if (err) {
+            res.json({ success: false, message: "Login failed!" });
+        } else if (results.length > 0) {
+            res.json({ success: true, message: "Login successful!" });
+        } else {
+            res.json({ success: false, message: "Invalid credentials." });
+        }
+    });
 });
 
 // Start Server
