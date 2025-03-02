@@ -1,4 +1,7 @@
-## Getting Started
+## Check out setup guide for most recent updates.
+# you need node mysql and vscode installed to run properly.
+
+# Getting Started
 *Need to have next js/ node js installed to run
 
 create the next app by running
