@@ -25,7 +25,11 @@ cd backend
 node server.js
 
 
-You can test the database connection by going to the Sign-in Page and using credentials:
+# Test the database connection 
+
+Go to the Sign-in Page
+
+Use credentials:
 
 user: admin
 
