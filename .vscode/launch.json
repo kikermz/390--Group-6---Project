@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Program",
+            "program": "${workspaceFolder}/server.js",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node",
+            "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe"
+        },
+        {
+            "type": "node",
+            "name": "Run Current File",
+            "request": "launch",
+            "program": "${file}"
+        }
+    ]
+}
