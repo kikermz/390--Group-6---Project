@@ -1,6 +1,9 @@
 ## Check out setup guide for most recent updates.
 
-# you need node mysql and vscode installed to run properly.
+# install the following to run
+node: https://nodejs.org/en 
+mysql: https://dev.mysql.com/downloads/installer/
+vscode: https://code.visualstudio.com/download
 
 #run the app by cd into frontend and run:
 npm run dev
