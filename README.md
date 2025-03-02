@@ -7,14 +7,14 @@ mysql: https://dev.mysql.com/downloads/installer/
 
 vscode: https://code.visualstudio.com/download
 
-#run the app by cd into frontend and run:
+# run the frontend app:
+cd frontend
 npm run dev
-using link as the way to view the page
-http://localhost:3000
-
+Go to web browser and enter: http://localhost:3000
 The home page of the app is `app/page.tsx`
 
-# run the backend by cd into backend and run:
+# run the backend server:
+cd backend
 node server.js
 
 You can test the database connection by going to the Sign-in Page and using credentials:
