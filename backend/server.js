@@ -12,7 +12,7 @@ const db = mysql.createConnection({
     host: "localhost",
     user: "root",
     password: "password", // Add your MySQL root password if set
-    database: "userDB"
+    database: "cmpsc390"
 });
 
 db.connect(err => {
@@ -27,6 +27,7 @@ db.connect(err => {
 app.post("/login", (req, res) => {
     const { username, password } = req.body;
 
+    console.log("Serverside this is username "+username +" and this is password: "+password);
     db.query("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, results) => {
         if (err) {
             res.json({ success: false, message: "Login failed!" });
@@ -36,6 +37,22 @@ app.post("/login", (req, res) => {
             res.json({ success: false, message: "Invalid credentials." });
         }
     });
+});
+
+// Signup Route
+app.post("/signup", (req, res) => {
+    const { username, password } = req.body;
+
+    console.log("Serverside this is username "+username +" and this is password: "+password);
+    
+    db.query("INSERT INTO users (username, password) VALUES (?,?)", [username, password], (err, results) => {
+        if (err) {
+            res.json({ success: false, message: "Signup failed!" });
+        } else {
+            res.json({ success: true, message: "Signup successful for username: "+username});
+        }
+    });
+
 });
 
 // Start Server
