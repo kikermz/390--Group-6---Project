@@ -37,6 +37,9 @@ const LeftBar = () => {
                     <Link href="/auth/login" className="p-2 rounded-full hover:bg-[#301e48]">
                         <span className="">Profile</span>
                     </Link>
+                    <Link href="/auth/signup" className="p-2 rounded-full hover:bg-[#301e48]">
+                        <span className="">Sign Up</span>
+                    </Link>
                     <Link href="/" className="p-2 rounded-full hover:bg-[#301e48]">
                         <span className="">More ...</span>
                     </Link>
