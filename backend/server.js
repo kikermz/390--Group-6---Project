@@ -11,8 +11,8 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "password", // Add your MySQL root password if set
-    database: "cmpsc390"
+    password: "Password123", // Add your MySQL root password if set
+    database: "userDB"
 });
 
 db.connect(err => {
@@ -27,12 +27,18 @@ db.connect(err => {
 app.post("/login", (req, res) => {
     const { username, password } = req.body;
 
-    console.log("Serverside this is username "+username +" and this is password: "+password);
+    console.log("Serverside this is username " + username + " and this is password: " + password);
+
     db.query("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, results) => {
         if (err) {
             res.json({ success: false, message: "Login failed!" });
         } else if (results.length > 0) {
-            res.json({ success: true, message: "Login successful!" });
+            const userID = results[0].id; // Get userID from the database
+            res.json({ 
+                success: true, 
+                message: "Login successful!", 
+                userID // Send userID to the frontend
+            });
         } else {
             res.json({ success: false, message: "Invalid credentials." });
         }
@@ -53,6 +59,20 @@ app.post("/signup", (req, res) => {
         }
     });
 
+});
+
+//  Create Post Route
+app.post("/createPost", (req, res) => {
+    const { userID, content } = req.body; // Ensure correct variable
+
+    if (!userID || !content.trim()) {
+        return res.status(400).json({ success: false, message: "User ID and content are required" });
+    }
+
+    db.query("INSERT INTO posts (id, content) VALUES (?, ?)", [userID, content], (err, results) => {
+        if (err) return res.status(500).json({ success: false, message: "Failed to create post" });
+        res.json({ success: true, message: "✅ Post created successfully!" });
+    });
 });
 
 // Start Server
