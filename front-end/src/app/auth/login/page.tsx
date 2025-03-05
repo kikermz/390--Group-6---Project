@@ -35,15 +35,15 @@ const Login = () => {
 
     return (
         <div className="flex items-center justify-center h-screen bg-gray-900">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-80">
-                <h1 className="text-xl font-bold mb-4 text-center text-black">Login</h1> {/* Title in black */}
+            <div className="bg-black p-6 rounded-lg shadow-lg w-80">
+                <h1 className="text-xl font-bold mb-4 text-center text-white">Login</h1> {/* Title in black */}
                 
                 <input
                     type="text"
                     placeholder="Username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full p-2 mb-3 border rounded text-black bg-white" 
+                    className="w-full p-2 mb-3 border rounded text-white bg-black" 
                 />
 
                 <input
@@ -51,17 +51,17 @@ const Login = () => {
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-2 mb-3 border rounded text-black bg-white"
+                    className="w-full p-2 mb-3 border rounded text-white bg-black"
                 />
 
                 <button
                     onClick={handleLogin}
-                    className="w-full bg-purple-600 text-white p-2 rounded font-bold hover:bg-purple-700"
+                    className="w-full bg-white text-black p-2 rounded font-bold hover:bg-purple-700"
                 >
                     Login
                 </button>
 
-                {message && <p className="mt-2 text-center text-black">{message}</p>} {/* Message text in black */}
+                {message && <p className="mt-2 text-center text-white">{message}</p>} {/* Message text in black */}
             </div>
         </div>
     );
