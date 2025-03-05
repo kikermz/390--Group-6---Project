@@ -13,7 +13,7 @@ const LeftBar = () => {
 
                 <div className="flex flex-col gap-2">
                     {/*Will Replace SEARCH with search bar */}
-                    <Link href="/" className="p-2 rounded-full hover:bg-[#301e48]">
+                    <Link href="/" className="p-2 rounded-full hover:bg-purple-600">
                         <span className="">Search</span>
                     </Link>
                     <Link href="/" className="p-2 rounded-full hover:bg-[#301e48]">

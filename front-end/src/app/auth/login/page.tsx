@@ -34,8 +34,8 @@ const Login = () => {
     
 
     return (
-        <div className="flex items-center justify-center h-screen bg-gray-900">
-            <div className="bg-black p-6 rounded-lg shadow-lg w-80">
+        <div className="flex items-center justify-center h-screen bg-black">
+            <div className="bg-black p-6 rounded-lg shadow-lg w-80 border rounded">
                 <h1 className="text-xl font-bold mb-4 text-center text-white">Login</h1> {/* Title in black */}
                 
                 <input
@@ -56,7 +56,7 @@ const Login = () => {
 
                 <button
                     onClick={handleLogin}
-                    className="w-full bg-white text-black p-2 rounded font-bold hover:bg-purple-700"
+                    className="w-full bg-white text-black p-2 rounded font-bold hover:bg-purple-600"
                 >
                     Login
                 </button>

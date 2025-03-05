@@ -69,6 +69,7 @@ CREATE TABLE `posts` (
 
 CREATE TABLE `users` (
   `user_id` int(11) NOT NULL,
+  `name` VARCHAR(100) NOT NULL,  -- New column for full name
   `username` varchar(50) NOT NULL,
   `email` varchar(100) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
