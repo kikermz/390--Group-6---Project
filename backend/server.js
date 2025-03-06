@@ -12,7 +12,7 @@ const db = mysql.createConnection({
     host: "localhost",
     user: "root",
     password: "password", // Add your MySQL root password if set
-    database: "cmpsc390"
+    database: "userdb"
 });
 
 db.connect(err => {
