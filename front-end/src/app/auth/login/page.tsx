@@ -14,23 +14,30 @@ const Login = () => {
     const [message, setMessage] = useState(""); // For success/error feedback
 
     const handleLogin = async () => {
-        console.log("Send username: " + username + " and password: "+ password + "to the server.");
+        console.log("Send username: " + username + " and password: " + password + " to the server.");
+        
         try {
             const response = await fetch("http://localhost:5000/login", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password }),
             });
-    
+
             const result = await response.json();
             setMessage(result.message);
+
+            if (result.success) {
+                localStorage.setItem("userID", result.userID); // Store userID for later use
+                alert("✅ Login Successful!");
+            } else {
+                alert("❌ Login Failed.");
+            }
         } catch (error) {
             console.error("Error connecting to server:", error);
             setMessage("Failed to connect to the server.");
         }
     };
+
     
 
     return (
