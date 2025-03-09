@@ -11,8 +11,8 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "password", // Add your MySQL root password if set
-    database: "cmpsc390"
+    password: "password", // Change to whatever your local mysql password is
+    database: "cmpsc390" // Change to whatever your local db is set
 });
 
 db.connect(err => {
@@ -83,6 +83,30 @@ app.get("/notifications", (req, res) => {
             res.json({ success: false, message: "Pull failed! "+err});
         }else{
             res.json({success: true, message:results});
+        }
+    });
+});
+
+// Grab Post
+
+app.post("/grabPost", (req, res) => {
+    console.log("Grab posts called...");
+    const { userID } = req.query; // Use query parameters for GET requests
+    console.log("Here's userID: "+ userID);
+
+    if (!userID) {
+        return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+
+    db.query("SELECT * FROM posts WHERE id = ?", [userID], (err, results) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: "Failed to retrieve posts" });
+        }
+
+        if (results.length > 0) {
+            res.json({ success: true, posts: results });
+        } else {
+            res.json({ success: false, message: "No posts found for this user" });
         }
     });
 });

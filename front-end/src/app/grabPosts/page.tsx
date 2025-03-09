@@ -17,9 +17,12 @@ const Posts = () => {
         setError(""); // Clear error before new fetch
 
         try {
-            const response = await fetch(`http://localhost:5000/grabPost?userID=${userID}`);
-            const data = await response.json();
+            const response = await fetch("http://localhost:5000/grabPost?userID=2", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+            });
 
+            const data = await response.json();
             if (data.success) {
                 setPosts(data.posts); // Save posts in state
             } else {
@@ -49,7 +52,7 @@ const Posts = () => {
                     <h3>Fetched Posts:</h3>
                     <ul>
                         {posts.map((post, index) => (
-                            <li key={index}>{post.content}</li>
+                            <li key={index}>{"test"}</li>
                         ))}
                     </ul>
                 </div>
