@@ -2,6 +2,8 @@ const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken')
 
 const app = express();
 app.use(cors());
@@ -23,18 +25,31 @@ db.connect(err => {
     }
 });
 
+
 // Login Route
 app.post("/login", (req, res) => {
     const { username, password } = req.body;
 
     console.log("Serverside this is username "+username +" and this is password: "+password);
-    db.query("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, results) => {
+
+    db.query("SELECT * FROM users WHERE username = ?", [username], (err, result) => {
         if (err) {
             res.json({ success: false, message: "Login failed!" });
-        } else if (results.length > 0) {
-            res.json({ success: true, message: "Login successful!" });
+
+        } else if (result.length > 0) {
+             //hash pass and compare to the db
+             bcrypt.compare(password, result[0].password, (err, match) => {
+                if (err) {
+                    return res.json({ success: false, message: "Error" });
+                } else if (match) {
+                    //create a token to pass the name?
+                    return res.json({ success: true, message: "Login successful!" });
+                } else {
+                    return res.json({ success: false, message: "Invalid Login" });
+                }
+            });
         } else {
-            res.json({ success: false, message: "Invalid credentials." });
+            return res.json({ success: false, message: "Invalid Login." });
         }
     });
 });
@@ -50,18 +65,24 @@ app.post("/signup", (req, res) => {
         }
 
         if (results.length > 0) {
-            return res.status(400).json({ success: false, message: "Username already exists!" });
+            return res.status(400).json({ success: false, message: "Username Exists!" });
         }
 
         console.log(`Serverside: Name: ${name}, Email: ${email}, Username: ${username}, Password: ${password}`);
+        
+        //Encrypt the password
+        bcrypt.hash(password, 10, (err, hashedPassword) => {
+            if (err) {
+                return res.status(500).json({ success: false, message: "Problem Hashing Password" });
+            }
 
         // Insert new user into the database
         db.query(
             "INSERT INTO users (name, email, username, password) VALUES (?, ?, ?, ?)", 
-            [name, email, username, password], 
-            (err, results) => {
+            [name, email, username, hashedPassword], 
+            (err) => {
                 if (err) {
-                    console.error("Error inserting user:", err);
+                    console.error("Couldnt Insert User:", err);
                     return res.status(500).json({ success: false, message: "Signup failed!" });
                 } else {
                     return res.json({ success: true, message: `Signup successful for username: ${username}` });
@@ -69,6 +90,7 @@ app.post("/signup", (req, res) => {
             }
         );
     });
+});
 });
 
 // Start Server

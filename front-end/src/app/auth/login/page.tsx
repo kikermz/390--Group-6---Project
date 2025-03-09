@@ -1,7 +1,7 @@
 /**
  * 
  * Created by William Burbatt
- * 
+ * altered by Luis 3/4/25
  */
 
 "use client"; // Required for Next.js App Router
@@ -25,7 +25,15 @@ const Login = () => {
             });
     
             const result = await response.json();
+            if (result.success) {
+            // Store token in localStorage
+            localStorage.setItem("authToken", result.token);
+            // Optionally, store user details if you want
+            localStorage.setItem("user", JSON.stringify({ username }));
+            window.location.href = "/";
+        } else {
             setMessage(result.message);
+        }
         } catch (error) {
             console.error("Error connecting to server:", error);
             setMessage("Failed to connect to the server.");

@@ -1,7 +1,7 @@
 /**
  * 
  * Created by William Burbatt
- * 
+ * altered by Luis 3/4/25
  */
 "use client"; // Required for Next.js App Router
 
@@ -13,8 +13,17 @@ const Signup = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [message, setMessage] = useState(""); // For success/error feedback
+    const [error, setError] = useState(""); // For validation errors
 
     const handleSignup = async () => {
+        setMessage("");
+        setError("");
+
+        if (!name || !email || !username || !password) {
+            setError("All fields are required.");
+            return;
+        }
+
         console.log(`Sending Name: ${name}, Email: ${email}, Username: ${username}, Password: ${password} to the server.`);
 
         try {
@@ -27,7 +36,13 @@ const Signup = () => {
             });
 
             const result = await response.json();
-            setMessage(result.message);
+
+            if (!response.ok) {
+                setError(result.message || "Signup failed. Please try again.");
+            } else {
+                setMessage("Signup successful! You can now log in.");
+            }
+
         } catch (error) {
             console.error("Error connecting to server:", error);
             setMessage("Failed to connect to the server.");
@@ -76,8 +91,9 @@ const Signup = () => {
                 >
                     Signup
                 </button>
-
-                {message && <p className="mt-2 text-center text-black">{message}</p>} {/* Message text in black */}
+                {message && <p className="mt-2 text-center text-white">{message}</p>} {/*Success*/}
+                {error && <p className="mt-2 text-center text-white">{error}</p>} {/* Fail*/}
+                
             </div>
         </div>
     );
