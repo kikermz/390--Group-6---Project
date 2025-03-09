@@ -11,8 +11,8 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "group6pa55", // Add your MySQL root password if set
-    database: "group6_social_media"
+    password: "password", // Add your MySQL root password if set
+    database: "cmpsc390"
 });
 
 db.connect(err => {
@@ -76,13 +76,13 @@ app.post("/createPost", (req, res) => {
 });
 
 //Grab-Notification Route
-app.get("/api/notifications", (req, res) => {
-    db.query("SELECT*FROM notifications ORDERBY createdAt ASC", (err, results) => {
+app.get("/notifications", (req, res) => {
+    console.log("Pulling notifications...");
+    db.query("SELECT*FROM notifications order by createdAt ASC", (err, results) => {
         if(err){
-            console.error(err.message);
-            res.status(500).send("Server Error");
+            res.json({ success: false, message: "Pull failed! "+err});
         }else{
-            res.json(results);
+            res.json({success: true, message:results});
         }
     });
 });
