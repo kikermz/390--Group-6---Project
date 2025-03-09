@@ -28,7 +28,7 @@ const LeftBar = () => {
                     <Link href="/" className="p-2 rounded-full hover:bg-[#301e48]">
                         <span className="">News</span>
                     </Link>
-                    <Link href="/" className="p-2 rounded-full hover:bg-[#301e48]">
+                    <Link href="/notifications" className="p-2 rounded-full hover:bg-[#301e48]">
                         <span className="">Notifications</span>
                     </Link>
                     <Link href="/" className="p-2 rounded-full hover:bg-[#301e48]">

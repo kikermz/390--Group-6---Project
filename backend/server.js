@@ -75,6 +75,19 @@ app.post("/createPost", (req, res) => {
     });
 });
 
+//Grab-Notification Route
+app.get("/notifications", (req, res) => {
+    console.log("Pulling notifications...");
+    db.query("SELECT*FROM notifications order by createdAt ASC", (err, results) => {
+        if(err){
+            res.json({ success: false, message: "Pull failed! "+err});
+        }else{
+            res.json({success: true, message:results});
+        }
+    });
+});
+
+
 // Start Server
 const PORT = 5000;
 app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
