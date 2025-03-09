@@ -11,8 +11,8 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "password", // Add your MySQL root password if set
-    database: "cmpsc390"
+    password: "group6pa55", // Add your MySQL root password if set
+    database: "group6_social_media"
 });
 
 db.connect(err => {
@@ -54,6 +54,20 @@ app.post("/signup", (req, res) => {
     });
 
 });
+
+//Grab-Notification Route
+app.get("/api/notifications", (req, res) => {
+    db.query("SELECT*FROM notifications ORDERBY createdAt ASC", (err, results) => {
+        if(err){
+            console.error(err.message);
+            res.status(500).send("Server Error");
+        }else{
+            res.json(results);
+        }
+    });
+});
+
+//Notification Object
 
 // Start Server
 const PORT = 5000;
