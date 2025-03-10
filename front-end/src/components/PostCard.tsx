@@ -4,7 +4,7 @@ import React from "react";
 const PostCard = ({}) => {
     return (
         <div>
-            Test
+            test
         </div>
     );
 };
@@ -24,7 +24,7 @@ const styles = {
         marginBottom: "8px"
     },
     content: {
-        fontSize: "16px",
+        fontSize: "20px",
         marginBottom: "12px",
         color: "#333"
     },
