@@ -11,8 +11,8 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "password", // Add your MySQL root password if set
-    database: "cmpsc390"
+    password: "group6pa55", // Add your MySQL root password if set
+    database: "group6_social_media"
 });
 
 db.connect(err => {
@@ -78,7 +78,7 @@ app.post("/createPost", (req, res) => {
 //Grab-Notification Route
 app.get("/notifications", (req, res) => {
     console.log("Pulling notifications...");
-    db.query("SELECT*FROM notifications order by createdAt ASC", (err, results) => {
+    db.query("SELECT notify, createdAt FROM notifications order by createdAt ASC", (err, results) => {
         if(err){
             res.json({ success: false, message: "Pull failed! "+err});
         }else{
