@@ -11,8 +11,8 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "password", // Change to whatever your local mysql password is
-    database: "cmpsc390" // Change to whatever your local db is set
+    password: "Password1", // Change to whatever your local mysql password is
+    database: "userdb" // Change to whatever your local db is set
 });
 
 db.connect(err => {
