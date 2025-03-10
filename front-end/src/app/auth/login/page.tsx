@@ -1,7 +1,7 @@
 /**
  * 
  * Created by William Burbatt
- * 
+ * altered by Luis 3/4/25
  */
 
 "use client"; // Required for Next.js App Router
@@ -14,43 +14,44 @@ const Login = () => {
     const [message, setMessage] = useState(""); // For success/error feedback
 
     const handleLogin = async () => {
-        console.log("Send username: " + username + " and password: " + password + " to the server.");
-        
+        console.log("Send username: " + username + " and password: "+ password + "to the server.");
         try {
             const response = await fetch("http://localhost:5000/login", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                },
                 body: JSON.stringify({ username, password }),
             });
-
+    
             const result = await response.json();
-            setMessage(result.message);
-
             if (result.success) {
-                localStorage.setItem("userID", result.userID); // Store userID for later use
-                alert("✅ Login Successful!");
-            } else {
-                alert("❌ Login Failed.");
-            }
+            // Store token in localStorage
+            localStorage.setItem("authToken", result.token);
+            // Optionally, store user details if you want
+            localStorage.setItem("user", JSON.stringify({ username }));
+            window.location.href = "/";
+        } else {
+            setMessage(result.message);
+        }
         } catch (error) {
             console.error("Error connecting to server:", error);
             setMessage("Failed to connect to the server.");
         }
     };
-
     
 
     return (
-        <div className="flex items-center justify-center h-screen bg-gray-900">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-80">
-                <h1 className="text-xl font-bold mb-4 text-center text-black">Login</h1> {/* Title in black */}
+        <div className="flex items-center justify-center h-screen bg-black">
+            <div className="bg-black p-6 rounded-lg shadow-lg w-80 border rounded">
+                <h1 className="text-xl font-bold mb-4 text-center text-white">Login</h1> {/* Title in black */}
                 
                 <input
                     type="text"
                     placeholder="Username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full p-2 mb-3 border rounded text-black bg-white" 
+                    className="w-full p-2 mb-3 border rounded text-white bg-black" 
                 />
 
                 <input
@@ -58,17 +59,17 @@ const Login = () => {
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-2 mb-3 border rounded text-black bg-white"
+                    className="w-full p-2 mb-3 border rounded text-white bg-black"
                 />
 
                 <button
                     onClick={handleLogin}
-                    className="w-full bg-purple-600 text-white p-2 rounded font-bold hover:bg-purple-700"
+                    className="w-full bg-white text-black p-2 rounded font-bold hover:bg-purple-600"
                 >
                     Login
                 </button>
 
-                {message && <p className="mt-2 text-center text-black">{message}</p>} {/* Message text in black */}
+                {message && <p className="mt-2 text-center text-white">{message}</p>} {/* Message text in black */}
             </div>
         </div>
     );
