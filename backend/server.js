@@ -78,7 +78,7 @@ app.post("/createPost", (req, res) => {
 //Grab-Notification Route
 app.get("/notifications", (req, res) => {
     console.log("Pulling notifications...");
-    db.query("SELECT*FROM notifications order by createdAt ASC", (err, results) => {
+    db.query("SELECT notify, createdAt FROM notifications order by createdAt ASC", (err, results) => {
         if(err){
             res.json({ success: false, message: "Pull failed! "+err});
         }else{
