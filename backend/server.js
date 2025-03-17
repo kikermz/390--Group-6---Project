@@ -3,6 +3,7 @@ const mysql = require("mysql2");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
+const bcrypt = require('bcrypt');
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
@@ -11,8 +12,8 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "Password1", // Change to whatever your local mysql password is
-    database: "userdb" // Change to whatever your local db is set
+    password: "Password123", // Change to whatever your local mysql password is
+    database: "userDB" // Change to whatever your local db is set
 });
 
 db.connect(err => {
