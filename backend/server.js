@@ -28,20 +28,25 @@ db.connect(err => {
 app.post("/login", (req, res) => {
     const { username, password } = req.body;
 
-    console.log("Serverside this is username "+username +" and this is password: "+password);
+    console.log("Serverside this is username " + username + " and this is password: " + password);
 
     db.query("SELECT * FROM users WHERE username = ?", [username], (err, result) => {
         if (err) {
             res.json({ success: false, message: "Login failed!" });
 
         } else if (result.length > 0) {
-             //hash pass and compare to the db
-             bcrypt.compare(password, result[0].password, (err, match) => {
+            //hash pass and compare to the db
+            bcrypt.compare(password, result[0].password, (err, match) => {
                 if (err) {
                     return res.json({ success: false, message: "Error" });
                 } else if (match) {
-                    //create a token to pass the name?
-                    return res.json({ success: true, message: "Login successful!" });
+                    // Send userID in the response
+                    const userID = result[0].id; 
+                    return res.json({
+                        success: true,
+                        message: "Login successful!",
+                        userID: userID,  // Send the userID to the frontend
+                    });
                 } else {
                     return res.json({ success: false, message: "Invalid Login" });
                 }
