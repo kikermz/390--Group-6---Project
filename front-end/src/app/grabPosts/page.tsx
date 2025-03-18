@@ -1,32 +1,43 @@
 "use client"; // Required for Next.js App Router
-import React, { useState } from "react";
+import React,{ useState } from "react";
+
+   // Define a Post type to match your database structure
+   type Post = {
+    postID: number;
+    id: number; // User ID (foreign key)
+    content: string;
+    created_at: string;
+    username: string;
+};
 
 const Posts = () => {
+ 
     // State to store posts
-    const [posts, setPosts] = useState([]);
-    const [userID, setUserID] = useState("");
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [username, setUsername] = useState("");
     const [error, setError] = useState("");
 
     // Function to fetch posts from the backend
     const fetchPosts = async () => {
-        if (!userID.trim()) {
-            setError("User ID is required.");
+        if (!username.trim()) {
+            setError("Username is required.");
             return;
         }
 
-        setError(""); // Clear error before new fetch
+        setError("");
 
         try {
-            const response = await fetch(`http://localhost:5000/grabPost?userID=${userID}`, {
+            const response = await fetch(`http://localhost:5000/grabPost?username=${username}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
             });
 
             const data = await response.json();
+            console.log("Data from backend:", data);
             if (data.success) {
-                setPosts(data.posts); // Save posts in state
+                setPosts(data.posts);
             } else {
-                setPosts([]); // Clear posts if not found
+                setPosts([]);
                 setError(data.message || "Failed to fetch posts.");
             }
         } catch (err) {
@@ -37,17 +48,19 @@ const Posts = () => {
     return (
         <div>
             <h1>Posts</h1>
+
             {/* Input Field and Button */}
             <input
                 type="text"
-                placeholder="Enter User ID"
-                value={userID}
-                onChange={(e) => setUserID(e.target.value)}
+                placeholder="Enter Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 style={{
                     marginRight: "10px",
                     padding: "5px",
                     border: "1px solid #ddd",
                     borderRadius: "5px",
+                    color: "black",  // Set input text color to black
                 }}
             />
             <button
@@ -72,20 +85,22 @@ const Posts = () => {
                 <div>
                     <h3>Fetched Posts:</h3>
                     <ul style={{ listStyleType: "none", padding: 0 }}>
-                        {posts.map((post, index) => (
+                        {posts.map((post) => (
                             <li
-                                key={index}
+                                key={post.postID}
                                 style={{
-                                    border: "1px solid #ddd", 
-                                    padding: "15px", 
-                                    marginBottom: "25px", 
-                                    borderRadius: "5px", 
-                                    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)", 
-                                    backgroundColor: "black"
+                                    border: "1px solid #ddd",
+                                    padding: "15px",
+                                    marginBottom: "25px",
+                                    borderRadius: "5px",
+                                    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
+                                    backgroundColor: "black",
+                                    color: "white",
                                 }}
                             >
-                                <h4 style={{ margin: "0 0 5px 0" }}>Post Title</h4>
-                                <p>Welcome</p>
+                                <h4 style={{ margin: "0 0 5px 0" }}>{post.username}</h4>
+                                <p>{post.content}</p>
+                                <small>Posted on: {new Date(post.created_at).toLocaleString()}</small>
                             </li>
                         ))}
                     </ul>

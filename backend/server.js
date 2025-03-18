@@ -132,15 +132,22 @@ app.get("/notifications", (req, res) => {
 
 app.post("/grabPost", (req, res) => {
     console.log("Grab posts called...");
-    const { userID } = req.query; // Use query parameters for GET requests
-    console.log("Here's userID: "+ userID);
+    const { username } = req.query;  // Using username 
 
-    if (!userID) {
-        return res.status(400).json({ success: false, message: "User ID is required" });
+    if (!username) {
+        return res.status(400).json({ success: false, message: "Username is required" });
     }
 
-    db.query("SELECT * FROM posts WHERE id = ?", [userID], (err, results) => {
+    const query = `
+        SELECT posts.postID, posts.content, posts.created_at, users.username
+        FROM posts
+        INNER JOIN users ON posts.id = users.id
+        WHERE users.username = ?
+    `;
+
+    db.query(query, [username], (err, results) => {
         if (err) {
+            console.error("Failed to retrieve posts:", err);
             return res.status(500).json({ success: false, message: "Failed to retrieve posts" });
         }
 
