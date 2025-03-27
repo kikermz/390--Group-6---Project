@@ -3,6 +3,7 @@ const mysql = require("mysql2");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
+const bcrypt = require('bcrypt');
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
@@ -11,8 +12,8 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "Password1", // Change to whatever your local mysql password is
-    database: "userdb" // Change to whatever your local db is set
+    password: "Password123", // Change to whatever your local mysql password is
+    database: "userDB" // Change to whatever your local db is set
 });
 
 db.connect(err => {
@@ -27,20 +28,25 @@ db.connect(err => {
 app.post("/login", (req, res) => {
     const { username, password } = req.body;
 
-    console.log("Serverside this is username "+username +" and this is password: "+password);
+    console.log("Serverside this is username " + username + " and this is password: " + password);
 
     db.query("SELECT * FROM users WHERE username = ?", [username], (err, result) => {
         if (err) {
             res.json({ success: false, message: "Login failed!" });
 
         } else if (result.length > 0) {
-             //hash pass and compare to the db
-             bcrypt.compare(password, result[0].password, (err, match) => {
+            //hash pass and compare to the db
+            bcrypt.compare(password, result[0].password, (err, match) => {
                 if (err) {
                     return res.json({ success: false, message: "Error" });
                 } else if (match) {
-                    //create a token to pass the name?
-                    return res.json({ success: true, message: "Login successful!" });
+                    // Send userID in the response
+                    const userID = result[0].id; 
+                    return res.json({
+                        success: true,
+                        message: "Login successful!",
+                        userID: userID,  // Send the userID to the frontend
+                    });
                 } else {
                     return res.json({ success: false, message: "Invalid Login" });
                 }
@@ -126,15 +132,22 @@ app.get("/notifications", (req, res) => {
 
 app.post("/grabPost", (req, res) => {
     console.log("Grab posts called...");
-    const { userID } = req.query; // Use query parameters for GET requests
-    console.log("Here's userID: "+ userID);
+    const { username } = req.query;  // Using username 
 
-    if (!userID) {
-        return res.status(400).json({ success: false, message: "User ID is required" });
+    if (!username) {
+        return res.status(400).json({ success: false, message: "Username is required" });
     }
 
-    db.query("SELECT * FROM posts WHERE id = ?", [userID], (err, results) => {
+    const query = `
+        SELECT posts.postID, posts.content, posts.created_at, users.username
+        FROM posts
+        INNER JOIN users ON posts.id = users.id
+        WHERE users.username = ?
+    `;
+
+    db.query(query, [username], (err, results) => {
         if (err) {
+            console.error("Failed to retrieve posts:", err);
             return res.status(500).json({ success: false, message: "Failed to retrieve posts" });
         }
 

@@ -28,6 +28,7 @@ const Login = () => {
             if (result.success) {
             // Store token in localStorage
             localStorage.setItem("authToken", result.token);
+            localStorage.setItem("userID", result.userID);
             // Optionally, store user details if you want
             localStorage.setItem("user", JSON.stringify({ username }));
             window.location.href = "/";
