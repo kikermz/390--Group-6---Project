@@ -2,8 +2,11 @@ const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-
 const bcrypt = require('bcrypt');
+const multer = require('multer'); 
+const path = require('path'); 
+const fs = require('fs');
+
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
@@ -23,6 +26,35 @@ db.connect(err => {
         console.log("✅ Connected to MySQL");
     }
 });
+
+// ✅ Serve static files from uploads folder
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// ✅ Set up storage for multer
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadDir = 'uploads/';
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir); // Ensure folder exists
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
+
+
+// ✅ Upload Media Route
+app.post("/uploadMedia", upload.single("media"), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+
+    const filePath = `/uploads/${req.file.filename}`; // Public path for client
+    res.json({ success: true, filePath });
+});
+
 
 // Login Route
 app.post("/login", (req, res) => {
@@ -99,14 +131,15 @@ app.post("/signup", (req, res) => {
 
 
 //  Create Post Route
-app.post("/createPost", (req, res) => {
-    const { userID, content } = req.body; // Ensure correct variable
+app.post("/createPost", upload.single("media"), (req, res) => {
+    const { userID, content } = req.body;
+    const media = req.file ? `/uploads/${req.file.filename}` : null; // Get file path
 
     if (!userID || !content.trim()) {
         return res.status(400).json({ success: false, message: "User ID and content are required" });
     }
 
-    db.query("INSERT INTO posts (id, content) VALUES (?, ?)", [userID, content], (err, results) => {
+    db.query("INSERT INTO posts (id, content, media) VALUES (?, ?, ?)", [userID, content, media], (err, results) => {
         if (err) return res.status(500).json({ success: false, message: "Failed to create post" });
         res.json({ success: true, message: "✅ Post created successfully!" });
     });
