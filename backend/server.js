@@ -162,7 +162,6 @@ app.get("/notifications", (req, res) => {
 
 
 // Grab Post
-
 app.post("/grabPost", (req, res) => {
     console.log("Grab posts called...");
     const { username } = req.query;  // Using username 
@@ -172,10 +171,11 @@ app.post("/grabPost", (req, res) => {
     }
 
     const query = `
-        SELECT posts.postID, posts.content, posts.created_at, users.username
-        FROM posts
-        INNER JOIN users ON posts.id = users.id
-        WHERE users.username = ?
+        SELECT posts.postID, posts.content, posts.created_at, posts.media, users.username
+    FROM posts
+    INNER JOIN users ON posts.id = users.id
+    WHERE users.username = ? 
+    ORDER BY posts.created_at DESC
     `;
 
     db.query(query, [username], (err, results) => {
@@ -189,6 +189,25 @@ app.post("/grabPost", (req, res) => {
         } else {
             res.json({ success: false, message: "No posts found for this user" });
         }
+    });
+});
+
+//Grab all posts by newest for the feed
+app.get("/grabAllPosts", (req, res) => {
+    const query = `
+        SELECT posts.postID, posts.content, posts.media, posts.created_at, users.username
+        FROM posts
+        INNER JOIN users ON posts.id = users.id
+        ORDER BY posts.created_at DESC
+    `;
+
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error("❌ Failed to retrieve all posts:", err);
+            return res.status(500).json({ success: false, message: "Failed to retrieve posts" });
+        }
+
+        return res.json({ success: true, posts: results });
     });
 });
 

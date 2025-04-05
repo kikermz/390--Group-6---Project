@@ -1,13 +1,27 @@
 import React from "react";
 
 
-const PostCard = ({}) => {
+interface PostCardProps {
+    content: string;
+    username: string;
+    media?: string;
+  }
+  
+  const PostCard: React.FC<PostCardProps> = ({ content, username, media }) => {
     return (
-        <div>
-            test
-        </div>
+      <div className="bg-white text-black rounded-lg shadow-md p-4 mb-4">
+        <p className="font-semibold">@{username}</p>
+        <p className="mt-2">{content}</p>
+        {media && (
+          <img
+            src={`http://localhost:5000/uploads/${media}`}
+            alt="Post media"
+            className="mt-3 w-full max-h-80 object-cover rounded-lg"
+          />
+        )}
+      </div>
     );
-};
+  };
 
 const styles = {
     card: {
