@@ -27,10 +27,10 @@ db.connect(err => {
     }
 });
 
-// ✅ Serve static files from uploads folder
+//  Serve static files from uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ✅ Set up storage for multer
+//  Set up storage for multer
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const uploadDir = 'uploads/';
@@ -45,7 +45,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 
-// ✅ Upload Media Route
+// Upload Media Route
 app.post("/uploadMedia", upload.single("media"), (req, res) => {
     if (!req.file) {
         return res.status(400).json({ success: false, message: "No file uploaded" });
@@ -211,6 +211,30 @@ app.get("/grabAllPosts", (req, res) => {
     });
 });
 
+//route for the right side bar
+app.get('/randomUsers', (req, res) => {
+    const currentUserID = req.query.userID;
+
+    // Check if userID is provided
+    if (!currentUserID) {
+        return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+
+    // Query the database
+    db.query(
+        "SELECT username FROM users WHERE id != ? ORDER BY RAND() LIMIT 4", // Use 'id' instead of 'userID'
+        [currentUserID],
+        (err, results) => {
+            if (err) {
+                console.error("Error fetching random users:", err);
+                return res.status(500).json({ success: false, message: "Server Error" });
+            }
+
+            // Return the results
+            res.json({ success: true, users: results });
+        }
+    );
+});
 
 // Start Server
 const PORT = 5000;
