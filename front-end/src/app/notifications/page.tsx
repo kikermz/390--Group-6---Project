@@ -11,7 +11,6 @@ import { useState } from "react";
 const Notifications = () => {
     const [ message, setMessage] = useState(""); // For success/error feedback
   
-
     const pullNotifications = async () => {
         try {
             const response = await fetch("http://localhost:5000/notifications", {
