@@ -14,6 +14,16 @@
     font-weight: bold;
     color: white;
   }
+
+  .sectionTitleL {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: white;
+    background-color: red; /* red background */
+    padding: 0.25rem 0.5rem; /* space inside the box */
+    border-radius: 0.5rem; /* rounded corners */
+    display: inline-block; /* shrink-wrap to content */
+  }
   
   .userItem {
     display: flex;

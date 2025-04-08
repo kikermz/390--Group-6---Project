@@ -35,7 +35,7 @@ const RightBar = () => {
       .then((res) => res.json())
       .then((data) => {
         console.log("NewsAPI Response:", data);
-        setArticles(data.articles?.slice(0, 4) || []);
+        setArticles(data.articles?.slice(0, 6) || []);
       })
       .catch((error) => console.error("Error fetching news:", error));
   } else {
@@ -72,7 +72,7 @@ const RightBar = () => {
     
           {/* News Articles */}
           <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Live News</h2>
+            <h2 className={styles.sectionTitleL}>Live News</h2>
             <ul className={styles.newsList}>
               {articles.length > 0 ? (
                 articles.map((article, index) => (
