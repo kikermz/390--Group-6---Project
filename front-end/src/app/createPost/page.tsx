@@ -1,53 +1,68 @@
 "use client";
-
 import { useState } from "react";
 
-function createPost() {
-    const [content, setContent] = useState<string>("");
+function CreatePost() {
+    const [content, setContent] = useState("");
+    const [media, setMedia] = useState<File | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!content.trim()) return alert("Post content cannot be empty.");
-    
-        const userID = localStorage.getItem("userID"); // Retrieve stored userID
+        const userID = localStorage.getItem("userID");
         if (!userID) return alert("❌ You must be logged in to post.");
-    
+        if (!content.trim() && !media) return alert("❌ Please add content or media.");
+
+        const formData = new FormData();
+        formData.append("userID", userID);
+        formData.append("content", content);
+        if (media) formData.append("media", media);
+
         try {
             const response = await fetch("http://localhost:5000/createPost", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userID, content }), // Now sending userID
+                body: formData, // ✅ FormData instead of JSON
             });
-    
+
             const data = await response.json();
             if (data.success) {
-                alert("✅ Post created successfully!");
-                setContent(""); // Clear input
+                alert("✅ Post created!");
+                setContent("");
+                setMedia(null);
+                // Redirect to homefeed
+                window.location.href = "/";
             } else {
                 alert("❌ Failed to create post.");
             }
-        } catch (error) {
-            console.error("Error:", error);
-            alert("❌ Network error, please try again.");
+        } catch (err) {
+            console.error("Upload error:", err);
+            alert("❌ Network error");
         }
     };
 
     return (
         <div className="p-4">
             <h1 className="text-xl font-bold">Create a New Post</h1>
-            <form onSubmit={handleSubmit} className="mt-4 flex gap-2">
-                <input
-                    type="text"
-                    placeholder="Write a post..."
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-4">
+                <textarea
+                    placeholder="Write something..."
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
-                    className="border p-2 flex-1 text-black bg-white placeholder-gray-500"
+                    className="border p-2 bg-white text-black"
                 />
-                <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
+                <input
+                    type="file"
+                    accept="image/*,video/*"
+                    onChange={(e) => setMedia(e.target.files?.[0] || null)}
+                    className="bg-white text-black"
+                />
+                <button
+                    type="submit"
+                    className="bg-white text-black font-semibold rounded-lg py-3 px-6 text-lg hover:bg-gray-800 transition"
+                >
                     Post
                 </button>
             </form>
         </div>
     );
 }
-export default createPost;
+
+export default CreatePost;

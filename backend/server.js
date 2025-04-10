@@ -2,8 +2,11 @@ const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-
 const bcrypt = require('bcrypt');
+const multer = require('multer'); 
+const path = require('path'); 
+const fs = require('fs');
+
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
@@ -23,6 +26,35 @@ db.connect(err => {
         console.log("✅ Connected to MySQL");
     }
 });
+
+//  Serve static files from uploads folder
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+//  Set up storage for multer
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadDir = 'uploads/';
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir); // Ensure folder exists
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
+
+
+// Upload Media Route
+app.post("/uploadMedia", upload.single("media"), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+
+    const filePath = `/uploads/${req.file.filename}`; // Public path for client
+    res.json({ success: true, filePath });
+});
+
 
 // Login Route
 app.post("/login", (req, res) => {
@@ -99,14 +131,15 @@ app.post("/signup", (req, res) => {
 
 
 //  Create Post Route
-app.post("/createPost", (req, res) => {
-    const { userID, content } = req.body; // Ensure correct variable
+app.post("/createPost", upload.single("media"), (req, res) => {
+    const { userID, content } = req.body;
+    const media = req.file ? `/uploads/${req.file.filename}` : null; // Get file path
 
     if (!userID || !content.trim()) {
         return res.status(400).json({ success: false, message: "User ID and content are required" });
     }
 
-    db.query("INSERT INTO posts (id, content) VALUES (?, ?)", [userID, content], (err, results) => {
+    db.query("INSERT INTO posts (id, content, media) VALUES (?, ?, ?)", [userID, content, media], (err, results) => {
         if (err) return res.status(500).json({ success: false, message: "Failed to create post" });
         res.json({ success: true, message: "✅ Post created successfully!" });
     });
@@ -129,7 +162,6 @@ app.get("/notifications", (req, res) => {
 
 
 // Grab Post
-
 app.post("/grabPost", (req, res) => {
     console.log("Grab posts called...");
     const { username } = req.query;  // Using username 
@@ -139,10 +171,11 @@ app.post("/grabPost", (req, res) => {
     }
 
     const query = `
-        SELECT posts.postID, posts.content, posts.created_at, users.username
-        FROM posts
-        INNER JOIN users ON posts.id = users.id
-        WHERE users.username = ?
+        SELECT posts.postID, posts.content, posts.created_at, posts.media, users.username
+    FROM posts
+    INNER JOIN users ON posts.id = users.id
+    WHERE users.username = ? 
+    ORDER BY posts.created_at DESC
     `;
 
     db.query(query, [username], (err, results) => {
@@ -159,6 +192,49 @@ app.post("/grabPost", (req, res) => {
     });
 });
 
+//Grab all posts by newest for the feed
+app.get("/grabAllPosts", (req, res) => {
+    const query = `
+        SELECT posts.postID, posts.content, posts.media, posts.created_at, users.username
+        FROM posts
+        INNER JOIN users ON posts.id = users.id
+        ORDER BY posts.created_at DESC
+    `;
+
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error("❌ Failed to retrieve all posts:", err);
+            return res.status(500).json({ success: false, message: "Failed to retrieve posts" });
+        }
+
+        return res.json({ success: true, posts: results });
+    });
+});
+
+//route for the right side bar
+app.get('/randomUsers', (req, res) => {
+    const currentUserID = req.query.userID;
+
+    // Check if userID is provided
+    if (!currentUserID) {
+        return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+
+    // Query the database
+    db.query(
+        "SELECT username FROM users WHERE id != ? ORDER BY RAND() LIMIT 4", // Use 'id' instead of 'userID'
+        [currentUserID],
+        (err, results) => {
+            if (err) {
+                console.error("Error fetching random users:", err);
+                return res.status(500).json({ success: false, message: "Server Error" });
+            }
+
+            // Return the results
+            res.json({ success: true, users: results });
+        }
+    );
+});
 
 // Start Server
 const PORT = 5000;
