@@ -15,7 +15,7 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "Password123", // Change to whatever your local mysql password is
+    password: "password", // Change to whatever your local mysql password is
     database: "userDB" // Change to whatever your local db is set
 });
 
@@ -234,6 +234,18 @@ app.get('/randomUsers', (req, res) => {
             res.json({ success: true, users: results });
         }
     );
+});
+
+//Test-Comment Route
+app.get("/comment", (req, res) => {
+    console.log("Pulling Comments");
+    db.query("SELECT * FROM comments", (err, results) => {
+        if(err){
+            res.json({ success: false, message: "Pull failed! "+err});
+        }else{
+            res.json({success: true, message:results});
+        }
+    });
 });
 
 // Start Server
