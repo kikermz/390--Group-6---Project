@@ -1,7 +1,8 @@
 "use client";
 import Post from "@/components/Post";
-import Image from "next/image"
-import Link from "next/link"
+import Image from "next/image";
+import Link from "next/link";
+import EditProfileModal from "@/components/EditProfile";
 import { useEffect, useState } from "react";
 
 
@@ -9,6 +10,8 @@ export default function Profile() {
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [bio , setBio] = useState("");
+  const [isModalOpen, setModalOpen] = useState(false);
+
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
@@ -30,6 +33,7 @@ export default function Profile() {
     }
   }, []);
  return (
+
   //add in limited or no veiw based on logged in status
    <div className="flex min-h-screen justify-center bg-black">
      <div className="w-full bg-black ">
@@ -38,22 +42,12 @@ export default function Profile() {
          <Image src="/general/BannerEx.jpeg" layout="fill" alt ="profile banner image"/>
        </div>
 
-
-
-
        {/* Profile */}
-
-
-
-
        <div className="relative -mt-16 flex flex-col items-center">
          {/*Picture */}
          <div className="border-4 border-white rounded-lg">
            <Image src="/icons/FakeUser.jpg" alt="Profile Picture" width={100} height={100} className="rounded-lg"/>
          </div>
-
-
-
 
          {/*Username*/}
          <div className="relative -mt-12 px-4 flex flex-row items-start text-left w-full">
@@ -61,17 +55,30 @@ export default function Profile() {
          <p className="mt-3 px-2 text-gray-500">@{username}</p>
          </div>
 
-
-
-
          <div className="flex pr-4 w-full border-t border-gray-300 mt-6">
          <button className="mt-5 flex justify-around border-b px-4 pb-3 hover:text-gray-800">Followers</button>
          <button className="mt-5 flex justify-around border-b px-4 pb-3 hover:text-gray-800">Following</button>
-         <Link href="/editProfile" className="mt-4 ml-auto rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-white hover:text-purple-600"><button className="">Edit</button></Link>
-       
+         
+         <button
+          onClick={() => setModalOpen(true)}
+          className="mt-4 ml-auto rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-white hover:text-purple-600"
+          >
+          Edit
+          </button>
        
          </div>
-       
+         <EditProfileModal
+            isOpen={isModalOpen}
+            onClose={() => setModalOpen(false)}
+            onSave={({ name, bio }) => {
+            setDisplayName(name);
+            setBio(bio);
+            }}
+            initialData={{
+            name: displayName,
+            bio: bio,
+            }}
+          />
          <p className="mt-2 text-sm text-white text-center px-4">{bio}</p>
        </div>
 
