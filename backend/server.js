@@ -15,7 +15,7 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "Password123", // Change to whatever your local mysql password is
+    password: "password123", // Change to whatever your local mysql password is
     database: "userDB" // Change to whatever your local db is set
 });
 
@@ -191,6 +191,45 @@ app.post("/grabPost", (req, res) => {
         }
     });
 });
+//Profile info grab
+app.get("/user/:username", (req, res) => {
+    const { username } = req.params;
+    const query = "SELECT username, name, bio FROM users WHERE username = ?"
+
+
+    db.query(query, [username], (err, results) => {
+      if (err) {
+        console.error("Error Getting User Info", err);
+        return res.status(500).json({ success: false, message: "Error Getting User Info" });
+      }
+     
+      const user = results[0];
+      res.json({
+        success: true,
+        user: {
+          username: user.username,
+          displayName: user.name,
+          bio: user.bio,
+        }
+      });
+    });
+  });
+
+
+//Profile Edit
+app.put("/editProfile", (req, res) => {
+    const { username, name, bio } = req.body;
+ 
+    const query = "UPDATE users SET name = ?, bio = ? WHERE username = ?";
+ 
+    db.query(query, [name, bio, username], (err, result) => {
+      if (err) {
+        console.error("Couldnt Update:", err);
+        return res.status(500).json({ success: false, message: "Error." });
+      }
+      res.json({ success: true, message: "Update Successfull✅" });
+    });
+  });
 
 //Grab all posts by newest for the feed
 app.get("/grabAllPosts", (req, res) => {
