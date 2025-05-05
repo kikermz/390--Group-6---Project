@@ -19,7 +19,7 @@ function CreatePost() {
         try {
             const response = await fetch("http://localhost:5000/createPost", {
                 method: "POST",
-                body: formData, // ✅ FormData instead of JSON
+                body: formData, 
             });
 
             const data = await response.json();
