@@ -50,12 +50,12 @@ const Feed = () => {
       
       {posts.map((post, index) => (
             <Post
-            key={index}
-            content={post.content}
-            username={post.username}
-            media={post.media}
-            createdAt={post.created_at}
-          />
+          key={index}
+          content={post.content}
+          username={post.username}
+          media={post.media}
+          createdAt={post.created_at} 
+          postID={Number(post.postID)}          />
           ))}
         </div>
       )}

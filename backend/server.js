@@ -15,7 +15,7 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "password123", // Change to whatever your local mysql password is
+    password: "Password123", // Change to whatever your local mysql password is
     database: "userDB" // Change to whatever your local db is set
 });
 
@@ -250,6 +250,31 @@ app.get("/grabAllPosts", (req, res) => {
     });
 });
 
+app.get("/grabUserPosts", (req, res) => {
+    const { username } = req.query;
+
+    if (!username) {
+        return res.status(400).json({ success: false, message: "Username is required" });
+    }
+
+    const query = `
+        SELECT posts.postID, posts.content, posts.media, posts.created_at, users.username
+        FROM posts
+        INNER JOIN users ON posts.id = users.id
+        WHERE users.username = ?
+        ORDER BY posts.created_at DESC
+    `;
+
+    db.query(query, [username], (err, results) => {
+        if (err) {
+            console.error("❌ Failed to retrieve user posts:", err);
+            return res.status(500).json({ success: false, message: "Failed to retrieve posts" });
+        }
+
+        return res.json({ success: true, posts: results });
+    });
+});
+
 //route for the right side bar
 app.get('/randomUsers', (req, res) => {
     const currentUserID = req.query.userID;
@@ -273,6 +298,224 @@ app.get('/randomUsers', (req, res) => {
             res.json({ success: true, users: results });
         }
     );
+});
+
+
+app.post("/follow", (req, res) => {
+    const { followerID, followedID } = req.body;
+
+    if (!followerID || !followedID) {
+        return res.status(400).json({ success: false, message: "Both followerID and followedID are required." });
+    }
+
+    const query = "INSERT INTO follows (follower_id, followed_id) VALUES (?, ?)";
+    db.query(query, [followerID, followedID], (err, result) => {
+        if (err) {
+            console.error("Error following user:", err);
+            return res.status(500).json({ success: false, message: "Failed to follow user." });
+        }
+        res.json({ success: true, message: "User followed successfully." });
+    });
+});
+
+app.delete("/unfollow", (req, res) => {
+    const { followerID, followedID } = req.body;
+
+    if (!followerID || !followedID) {
+        return res.status(400).json({ success: false, message: "Both followerID and followedID are required." });
+    }
+
+    const query = "DELETE FROM follows WHERE follower_id = ? AND followed_id = ?";
+    db.query(query, [followerID, followedID], (err, result) => {
+        if (err) {
+            console.error("Error unfollowing user:", err);
+            return res.status(500).json({ success: false, message: "Failed to unfollow user." });
+        }
+        res.json({ success: true, message: "User unfollowed successfully." });
+    });
+});
+
+
+app.get("/isFollowing", (req, res) => {
+    const { followerID, followedID } = req.query;
+
+    if (!followerID || !followedID) {
+        return res.status(400).json({ success: false, message: "Both followerID and followedID are required." });
+    }
+
+    const query = "SELECT * FROM follows WHERE follower_id = ? AND followed_id = ?";
+    db.query(query, [followerID, followedID], (err, results) => {
+        if (err) {
+            console.error("Error checking follow status:", err);
+            return res.status(500).json({ success: false, message: "Failed to check follow status." });
+        }
+        res.json({ success: true, isFollowing: results.length > 0 });
+    });
+});
+
+
+// Add a comment
+app.post("/addComment", (req, res) => {
+    const { postID, userID, content } = req.body;
+
+    if (!postID || !userID || !content.trim()) {
+        return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+
+    const query = "INSERT INTO comments (postID, userID, content) VALUES (?, ?, ?)";
+    db.query(query, [postID, userID, content], (err, result) => {
+        if (err) {
+            console.error("Error adding comment:", err);
+            return res.status(500).json({ success: false, message: "Failed to add comment" });
+        }
+        res.json({ success: true, message: "Comment added successfully" });
+    });
+});
+
+// Get comments for a post
+app.get("/getComments/:postID", (req, res) => {
+    const { postID } = req.params;
+
+    const query = `
+        SELECT comments.commentID, comments.content, comments.created_at, users.username
+        FROM comments
+        INNER JOIN users ON comments.userID = users.id
+        WHERE comments.postID = ?
+        ORDER BY comments.created_at ASC
+    `;
+    db.query(query, [postID], (err, results) => {
+        if (err) {
+            console.error("Error fetching comments:", err);
+            return res.status(500).json({ success: false, message: "Failed to fetch comments" });
+        }
+        res.json({ success: true, comments: results });
+    });
+});
+
+// Like a post
+app.post("/likePost", (req, res) => {
+    const { postID, userID } = req.body;
+
+    if (!postID || !userID) {
+        return res.status(400).json({ success: false, message: "Both postID and userID are required." });
+    }
+
+    const checkQuery = "SELECT * FROM likes WHERE postID = ? AND userID = ?";
+    const insertQuery = "INSERT INTO likes (postID, userID) VALUES (?, ?)";
+    const deleteQuery = "DELETE FROM likes WHERE postID = ? AND userID = ?";
+    const countQuery = "SELECT COUNT(*) AS likeCount FROM likes WHERE postID = ?";
+
+    // Check if the user has already liked the post
+    db.query(checkQuery, [postID, userID], (err, results) => {
+        if (err) {
+            console.error("Error checking like status:", err);
+            return res.status(500).json({ success: false, message: "Failed to check like status." });
+        }
+
+        if (results.length > 0) {
+            // User has already liked the post, so unlike it
+            db.query(deleteQuery, [postID, userID], (err) => {
+                if (err) {
+                    console.error("Error unliking post:", err);
+                    return res.status(500).json({ success: false, message: "Failed to unlike post." });
+                }
+
+                // Fetch the updated like count
+                db.query(countQuery, [postID], (err, countResult) => {
+                    if (err) {
+                        console.error("Error fetching updated like count:", err);
+                        return res.status(500).json({ success: false, message: "Failed to fetch updated like count." });
+                    }
+
+                    const likeCount = countResult[0].likeCount;
+                    res.json({ success: true, likes: likeCount, liked: false });
+                });
+            });
+        } else {
+            // User has not liked the post, so like it
+            db.query(insertQuery, [postID, userID], (err) => {
+                if (err) {
+                    console.error("Error liking post:", err);
+                    return res.status(500).json({ success: false, message: "Failed to like post." });
+                }
+
+                // Fetch the updated like count
+                db.query(countQuery, [postID], (err, countResult) => {
+                    if (err) {
+                        console.error("Error fetching updated like count:", err);
+                        return res.status(500).json({ success: false, message: "Failed to fetch updated like count." });
+                    }
+
+                    const likeCount = countResult[0].likeCount;
+                    res.json({ success: true, likes: likeCount, liked: true });
+                });
+            });
+        }
+    });
+});
+
+
+// Unlike a post
+app.delete("/unlikePost", (req, res) => {
+    const { postID, userID } = req.body;
+
+    if (!postID || !userID) {
+        return res.status(400).json({ success: false, message: "Both postID and userID are required." });
+    }
+
+    const deleteQuery = "DELETE FROM likes WHERE postID = ? AND userID = ?";
+    const countQuery = "SELECT COUNT(*) AS likeCount FROM likes WHERE postID = ?";
+
+    // Remove the like
+    db.query(deleteQuery, [postID, userID], (err) => {
+        if (err) {
+            console.error("Error unliking post:", err);
+            return res.status(500).json({ success: false, message: "Failed to unlike post." });
+        }
+
+        // Fetch the updated like count
+        db.query(countQuery, [postID], (err, countResult) => {
+            if (err) {
+                console.error("Error fetching updated like count:", err);
+                return res.status(500).json({ success: false, message: "Failed to fetch updated like count." });
+            }
+
+            const likeCount = countResult[0].likeCount;
+            res.json({ success: true, likes: likeCount });
+        });
+    });
+});
+
+// Get likes for a post
+app.get("/getLikes/:postID", (req, res) => {
+    const { postID } = req.params;
+    const { userID } = req.query; // Pass the logged-in user's ID as a query parameter
+
+    const queryLikesCount = "SELECT COUNT(*) AS likeCount FROM likes WHERE postID = ?";
+    const queryUserLiked = "SELECT * FROM likes WHERE postID = ? AND userID = ?";
+
+    db.query(queryLikesCount, [postID], (err, likeCountResults) => {
+        if (err) {
+            console.error("Error fetching like count:", err);
+            return res.status(500).json({ success: false, message: "Failed to fetch like count" });
+        }
+
+        const likeCount = likeCountResults[0].likeCount;
+
+        if (userID) {
+            db.query(queryUserLiked, [postID, userID], (err, userLikedResults) => {
+                if (err) {
+                    console.error("Error checking if user liked post:", err);
+                    return res.status(500).json({ success: false, message: "Failed to check user like status" });
+                }
+
+                const userLiked = userLikedResults.length > 0;
+                res.json({ success: true, likes: likeCount, userLiked });
+            });
+        } else {
+            res.json({ success: true, likes: likeCount, userLiked: false });
+        }
+    });
 });
 
 // Start Server
