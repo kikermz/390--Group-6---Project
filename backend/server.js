@@ -148,18 +148,53 @@ app.post("/createPost", upload.single("media"), (req, res) => {
 
 
 //Grab-Notification Route
-app.get("/notifications", (req, res) => {
-    console.log("Pulling notifications...");
-    db.query("SELECT notify, createdAt FROM notifications order by createdAt ASC", (err, results) => {
-        if(err){
-            res.json({ success: false, message: "Pull failed! "+err});
-        }else{
-            res.json({success: true, message:results});
+app.get("/getNotifications", (req, res) => {
+    const { userID } = req.query;
+
+    if (!userID) {
+        return res.status(400).json({ success: false, message: "User ID is required." });
+    }
+
+    const query = "SELECT * FROM notifications WHERE userID = ? ORDER BY created_at DESC";
+    const unreadCountQuery = "SELECT COUNT(*) AS unreadCount FROM notifications WHERE userID = ? AND is_read = FALSE";
+
+    db.query(query, [userID], (err, results) => {
+        if (err) {
+            console.error("Error fetching notifications:", err);
+            return res.status(500).json({ success: false, message: "Failed to fetch notifications." });
         }
+
+        db.query(unreadCountQuery, [userID], (err, unreadResults) => {
+            if (err) {
+                console.error("Error fetching unread notification count:", err);
+                return res.status(500).json({ success: false, message: "Failed to fetch unread notification count." });
+            }
+
+            const unreadCount = unreadResults[0].unreadCount;
+            res.json({ success: true, notifications: results, unreadCount });
+        });
     });
 });
 
+// Mark Notifications as Read
+app.put("/markNotificationsAsRead", (req, res) => {
+    const { userID } = req.body;
 
+    if (!userID) {
+        return res.status(400).json({ success: false, message: "User ID is required." });
+    }
+
+    const query = "UPDATE notifications SET is_read = TRUE WHERE userID = ?";
+
+    db.query(query, [userID], (err) => {
+        if (err) {
+            console.error("Error marking notifications as read:", err);
+            return res.status(500).json({ success: false, message: "Failed to mark notifications as read." });
+        }
+
+        res.json({ success: true, message: "Notifications marked as read." });
+    });
+});
 
 // Grab Post
 app.post("/grabPost", (req, res) => {
@@ -309,11 +344,27 @@ app.post("/follow", (req, res) => {
     }
 
     const query = "INSERT INTO follows (follower_id, followed_id) VALUES (?, ?)";
-    db.query(query, [followerID, followedID], (err, result) => {
+    const notificationQuery = `
+        INSERT INTO notifications (userID, message)
+        VALUES (?, CONCAT((SELECT username FROM users WHERE id = ?), ' followed you.'))
+    `;
+
+    db.query(query, [followerID, followedID], (err) => {
         if (err) {
+            if (err.code === "ER_DUP_ENTRY") {
+                return res.status(400).json({ success: false, message: "Already following this user." });
+            }
             console.error("Error following user:", err);
             return res.status(500).json({ success: false, message: "Failed to follow user." });
         }
+
+        // Add a notification for the followed user
+        db.query(notificationQuery, [followedID, followerID], (err) => {
+            if (err) {
+                console.error("Error creating follow notification:", err);
+            }
+        });
+
         res.json({ success: true, message: "User followed successfully." });
     });
 });
@@ -326,15 +377,16 @@ app.delete("/unfollow", (req, res) => {
     }
 
     const query = "DELETE FROM follows WHERE follower_id = ? AND followed_id = ?";
-    db.query(query, [followerID, followedID], (err, result) => {
+
+    db.query(query, [followerID, followedID], (err) => {
         if (err) {
             console.error("Error unfollowing user:", err);
             return res.status(500).json({ success: false, message: "Failed to unfollow user." });
         }
+
         res.json({ success: true, message: "User unfollowed successfully." });
     });
 });
-
 
 app.get("/isFollowing", (req, res) => {
     const { followerID, followedID } = req.query;
@@ -344,15 +396,16 @@ app.get("/isFollowing", (req, res) => {
     }
 
     const query = "SELECT * FROM follows WHERE follower_id = ? AND followed_id = ?";
+
     db.query(query, [followerID, followedID], (err, results) => {
         if (err) {
             console.error("Error checking follow status:", err);
             return res.status(500).json({ success: false, message: "Failed to check follow status." });
         }
+
         res.json({ success: true, isFollowing: results.length > 0 });
     });
 });
-
 
 // Add a comment
 app.post("/addComment", (req, res) => {
@@ -362,12 +415,28 @@ app.post("/addComment", (req, res) => {
         return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
-    const query = "INSERT INTO comments (postID, userID, content) VALUES (?, ?, ?)";
-    db.query(query, [postID, userID, content], (err, result) => {
+    const insertQuery = "INSERT INTO comments (postID, userID, content) VALUES (?, ?, ?)";
+    const notificationQuery = `
+        INSERT INTO notifications (userID, message)
+        SELECT posts.id, CONCAT(users.username, ' commented on your post: "', ?, '".')
+        FROM posts
+        INNER JOIN users ON users.id = ?
+        WHERE posts.postID = ?
+    `;
+
+    db.query(insertQuery, [postID, userID, content], (err) => {
         if (err) {
             console.error("Error adding comment:", err);
             return res.status(500).json({ success: false, message: "Failed to add comment" });
         }
+
+        // Add a notification for the post owner
+        db.query(notificationQuery, [content, userID, postID], (err) => {
+            if (err) {
+                console.error("Error creating notification:", err);
+            }
+        });
+
         res.json({ success: true, message: "Comment added successfully" });
     });
 });
@@ -404,8 +473,14 @@ app.post("/likePost", (req, res) => {
     const insertQuery = "INSERT INTO likes (postID, userID) VALUES (?, ?)";
     const deleteQuery = "DELETE FROM likes WHERE postID = ? AND userID = ?";
     const countQuery = "SELECT COUNT(*) AS likeCount FROM likes WHERE postID = ?";
+    const notificationQuery = `
+        INSERT INTO notifications (userID, message)
+        SELECT posts.id, CONCAT(users.username, ' liked your post.')
+        FROM posts
+        INNER JOIN users ON users.id = ?
+        WHERE posts.postID = ?
+    `;
 
-    // Check if the user has already liked the post
     db.query(checkQuery, [postID, userID], (err, results) => {
         if (err) {
             console.error("Error checking like status:", err);
@@ -420,7 +495,6 @@ app.post("/likePost", (req, res) => {
                     return res.status(500).json({ success: false, message: "Failed to unlike post." });
                 }
 
-                // Fetch the updated like count
                 db.query(countQuery, [postID], (err, countResult) => {
                     if (err) {
                         console.error("Error fetching updated like count:", err);
@@ -439,7 +513,13 @@ app.post("/likePost", (req, res) => {
                     return res.status(500).json({ success: false, message: "Failed to like post." });
                 }
 
-                // Fetch the updated like count
+                // Add a notification for the post owner
+                db.query(notificationQuery, [userID, postID], (err) => {
+                    if (err) {
+                        console.error("Error creating notification:", err);
+                    }
+                });
+
                 db.query(countQuery, [postID], (err, countResult) => {
                     if (err) {
                         console.error("Error fetching updated like count:", err);

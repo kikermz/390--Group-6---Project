@@ -6,54 +6,52 @@
 
 "use client"; // Required for Next.js App Router
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const Notifications = () => {
-    const [ message, setMessage] = useState(""); // For success/error feedback
-  
+  interface Notification {
+    message: string;
+  }
 
-    const pullNotifications = async () => {
-        try {
-            const response = await fetch("http://localhost:5000/notifications", {
-                method: "GET",
-                headers: { "Content-Type": "application/json" },
-            });
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
-            const result = await response.json();
-            setMessage(JSON.stringify(result.message))
-      
-            
+  useEffect(() => {
+    const userID = localStorage.getItem("userID"); // Replace with actual user ID
 
-            if (result.success) {
-                alert("✅ Pull Successful!");
-            } else {
-                alert("❌ Pull Failed.");
-            }
-        } catch (error) {
-            console.error("Error connecting to server:", error);
-            setMessage("Failed to connect to the server.");
+    fetch(`http://localhost:5000/getNotifications?userID=${userID}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setNotifications(data.notifications);
         }
-    };
+      })
+      .catch((err) => console.error("Error fetching notifications:", err));
 
-    
-    return (
-        <div className="flex items-center justify-center h-screen bg-gray-900">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-80">
-                <h1 className="text-xl font-bold mb-4 text-center text-black">Pull Notifications</h1> {/* Title in black */}
+       // Mark notifications as read
+    fetch("http://localhost:5000/markNotificationsAsRead", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userID }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            console.log("Notifications marked as read.");
+          }
+        })
+        .catch((err) => console.error("Error marking notifications as read:", err));
+  }, []);
 
-                <button
-                    onClick={pullNotifications}
-                    className="w-full bg-purple-600 text-white p-2 rounded font-bold hover:bg-purple-700">
-                     Show Notifications
-                </button>
-                <div>
-                {message && <p className="mt-2 text-center text-black">
-                {message}
-                    </p>} {/* Message text in black */}
-                </div>
-            </div>
-        </div>
-    );
+  return (
+    <div>
+      <h3>Notifications</h3>
+      <ul>
+        {notifications.map((notification, index) => (
+          <li key={index}>{notification.message}</li>
+        ))}
+      </ul>
+    </div>
+  );
 };
 
 export default Notifications;

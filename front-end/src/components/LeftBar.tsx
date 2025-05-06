@@ -7,7 +7,8 @@ const LeftBar = () => {
     const [loggedIn, setLoggedIn] = useState(false);
     const [username, setUsername] = useState("");
     const [displayName, setDisplayName] = useState("");
-  
+    const [unreadCount, setUnreadCount] = useState(0);
+
     useEffect(() => {
       //get token , check first
       const token = localStorage.getItem("authToken");
@@ -23,6 +24,19 @@ const LeftBar = () => {
             setDisplayName(userInfo.username);//will need to adapt later one to use a Display Name
         }
       }
+
+      // Fetch unread notification count
+    const userID = localStorage.getItem("userID"); // Replace with actual user ID
+    if (userID) {
+      fetch(`http://localhost:5000/getNotifications?userID=${userID}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setUnreadCount(data.unreadCount); // Set the unread notification count
+          }
+        })
+        .catch((err) => console.error("Error fetching unread notifications:", err));
+    }
     }, []);
 
 
@@ -52,9 +66,14 @@ const LeftBar = () => {
                     <Link href="/" className="p-2 rounded-full hover:bg-[#301e48]">
                         <span className="">News</span>
                     </Link>
-                    <Link href="/notifications" className="p-2 rounded-full hover:bg-[#301e48]">
-                        <span className="">Notifications</span>
-                    </Link>
+                    <Link href="/notifications" className="p-2 rounded-full hover:bg-[#301e48] relative flex items-center">
+                    <span className="">Notifications</span>
+                    {unreadCount > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2 py-1">
+                     {unreadCount}
+                    </span>
+                  )}
+                </Link>
                     <Link href={`/profile/${username}`} className="p-2 rounded-full hover:bg-[#301e48]">
                         <span className="">Profile</span>
                     </Link>
