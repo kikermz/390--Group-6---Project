@@ -598,6 +598,34 @@ app.get("/getLikes/:postID", (req, res) => {
     });
 });
 
+app.get("/getLoggedInUser", (req, res) => {
+    const authToken = req.headers.authorization;
+  
+    if (!authToken) {
+      return res.status(401).json({ success: false, message: "Unauthorized: Missing auth token" });
+    }
+  
+    // Decode the token or fetch user data from the session
+    const userID = decodeAuthToken(authToken); // Replace with your token decoding logic
+    if (!userID) {
+      return res.status(401).json({ success: false, message: "Unauthorized: Invalid token" });
+    }
+  
+    const query = "SELECT id, username FROM users WHERE id = ?";
+    db.query(query, [userID], (err, results) => {
+      if (err) {
+        console.error("Error fetching user data:", err);
+        return res.status(500).json({ success: false, message: "Failed to fetch user data" });
+      }
+  
+      if (results.length === 0) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+  
+      res.json({ success: true, user: results[0] });
+    });
+  });
+
 // Start Server
 const PORT = 5000;
 app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));

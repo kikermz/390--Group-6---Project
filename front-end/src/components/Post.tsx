@@ -152,47 +152,50 @@ const Post = ({ content, username, media, createdAt, postID }: PostProps) => {
             </video>
           ) : null}
 
-          {/* Likes Section */}
-          <div className="flex items-center gap-2 mt-2">
-            <button
-              onClick={handleLike}
-              className={`px-4 py-2 rounded ${
-                liked ? "bg-red-500 text-white" : "bg-gray-200 text-black"
-              }`}
-            >
-              {liked ? "Unlike" : "Like"} ({likes})
-            </button>
-          </div>
+           {/* Likes and Comment Input Section */}
+      <div className="flex items-center gap-2 mt-4">
+        {/* Like Button */}
+        <button
+          onClick={handleLike}
+          className={`px-3 py-1 rounded ${
+            liked ? "bg-red-500 text-white" : "bg-gray-200 text-black"
+          }`}
+        >
+          {liked ? "Unlike" : "Like"} ({likes})
+        </button>
 
-          {/* Comments Section */}
-          <div className="mt-4">
-            <h3 className="font-bold">Comments</h3>
-            <ul className="mt-2">
-              {comments.map((comment, index) => (
-                <li key={index} className="mb-2">
-                  <strong>{comment.username}</strong>: {comment.content}
-                </li>
-              ))}
-            </ul>
-            <div className="mt-2 flex gap-2">
-              <input
-                type="text"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Add a comment"
-                className="flex-1 border rounded px-2 py-1"
-              />
-              <button
-                onClick={handleAddComment}
-                className="px-4 py-2 bg-purple-500 text-white rounded"
-              >
-                Comment
-              </button>
-            </div>
-          </div>
-        </div>
+        {/* Comment Input */}
+        <input
+          type="text"
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          placeholder="Add a comment"
+          className="flex-1 border rounded px-2 py-1 text-black" // Ensure text is black
+        />
+
+        {/* Comment Button */}
+        <button
+          onClick={handleAddComment}
+          className="px-3 py-1 bg-purple-500 text-white rounded"
+        >
+          Comment
+        </button>
+      </div>
+
+      {/* Comments Section */}
+      <div className="mt-4">
+        <h3 className="font-bold">Comments</h3>
+        <ul className="mt-2">
+          {comments.map((comment, index) => (
+            <li key={index} className="mb-2">
+              <strong>{comment.username}</strong>: {comment.content}
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
+  </div>
+</div>
   );
 };
 

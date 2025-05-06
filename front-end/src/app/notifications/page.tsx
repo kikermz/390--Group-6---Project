@@ -44,10 +44,21 @@ const Notifications = () => {
 
   return (
     <div>
-      <h3>Notifications</h3>
-      <ul>
+      {/* Make the heading bigger and bold */}
+      <h3 style={{ fontSize: "2rem", fontWeight: "bold", marginBottom: "1rem" }}>Notifications</h3>
+      <ul style={{ listStyleType: "none", padding: 0 }}>
         {notifications.map((notification, index) => (
-          <li key={index}>{notification.message}</li>
+          <li
+            key={index}
+            style={{
+              fontSize: "1.2rem", // Make the notification text bigger
+              marginBottom: "1rem", // Add spacing between notifications
+              borderBottom: "1px solid #ccc", // Add a line between notifications
+              paddingBottom: "0.5rem", // Add padding below each notification
+            }}
+          >
+            {notification.message}
+          </li>
         ))}
       </ul>
     </div>

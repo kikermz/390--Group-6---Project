@@ -24,12 +24,21 @@ export default function Profile({ username }: ProfileProps) {
   const [error, setError] = useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState(false); // Follow status
   const [loggedInUserID, setLoggedInUserID] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
+  
 
   useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      const parsed = JSON.parse(userData);
-      setLoggedInUserID(parsed.id); // Store the logged-in user's ID
+
+    // Mark the component as client-side
+    setIsClient(true);
+
+    console.log("Fetching logged-in user data...");
+
+    const storedUserID = localStorage.getItem("userID");
+    const storedUser = localStorage.getItem("user");
+
+    if (storedUserID) {
+      setLoggedInUserID(storedUserID);
     }
 
     if (username) {
@@ -64,7 +73,7 @@ export default function Profile({ username }: ProfileProps) {
       // Check follow status
       if (loggedInUserID) {
         fetch(
-          `http://localhost:5000/isFollowing?followerID=${loggedInUserID}&followedID=${username}`
+          `http://localhost:5000/isFollowing?followerID=${storedUserID}&followedID=${username}`
         )
           .then((res) => res.json())
           .then((data) => {
@@ -77,7 +86,21 @@ export default function Profile({ username }: ProfileProps) {
     }
   }, [username, loggedInUserID]);
 
+  if (!isClient) {
+    // Render nothing on the server to avoid hydration mismatch
+    return null;
+  }
+
+
   const handleFollow = () => {
+    if (!loggedInUserID || !username) {
+      console.error("Error: Missing followerID or followedID");
+      return;
+    }
+  
+    console.log("Follow button clicked");
+    console.log("Payload:", { followerID: loggedInUserID, followedID: username });
+  
     fetch("http://localhost:5000/follow", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -85,14 +108,25 @@ export default function Profile({ username }: ProfileProps) {
     })
       .then((res) => res.json())
       .then((data) => {
+        console.log("Follow response:", data);
         if (data.success) {
           setIsFollowing(true);
+        } else {
+          console.error("Follow failed:", data.message);
         }
       })
       .catch((err) => console.error("Error following user:", err));
   };
-
+  
   const handleUnfollow = () => {
+    if (!loggedInUserID || !username) {
+      console.error("Error: Missing followerID or followedID");
+      return;
+    }
+  
+    console.log("Unfollow button clicked");
+    console.log("Payload:", { followerID: loggedInUserID, followedID: username });
+  
     fetch("http://localhost:5000/unfollow", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -100,8 +134,11 @@ export default function Profile({ username }: ProfileProps) {
     })
       .then((res) => res.json())
       .then((data) => {
+        console.log("Unfollow response:", data);
         if (data.success) {
           setIsFollowing(false);
+        } else {
+          console.error("Unfollow failed:", data.message);
         }
       })
       .catch((err) => console.error("Error unfollowing user:", err));
@@ -124,11 +161,11 @@ export default function Profile({ username }: ProfileProps) {
           {/* Picture */}
           <div className="border-4 border-white rounded-lg">
             <Image
-              src="/icons/FakeUser.jpg"
-              alt="Profile Picture"
-              width={100}
-              height={100}
-              className="rounded-lg"
+            src="/icons/user.png" // Default profile picture
+            alt="Profile Picture"
+            width={100}
+            height={100}
+            className="rounded-lg"
             />
           </div>
 
@@ -186,8 +223,6 @@ export default function Profile({ username }: ProfileProps) {
           <button className="pb-2 border-b-4 border-purple-600 text-purple-600 font-semibold">
             Posts
           </button>
-          <button className="hover:text-gray-800">Pictures</button>
-          <button className="hover:text-gray-800">Videos</button>
         </div>
 
         {/* Posts Section */}
