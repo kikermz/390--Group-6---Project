@@ -150,7 +150,7 @@ export default function Profile({ username }: ProfileProps) {
         {/* Background Banner */}
         <div className="relative h-40 w-full">
           <Image
-            src="/general/BannerEx.jpeg"
+            src="/icons/beach.jpg"
             layout="fill"
             alt="profile banner image"
           />
@@ -183,18 +183,7 @@ export default function Profile({ username }: ProfileProps) {
               Following
             </button>
 
-            {loggedInUserID !== username && (
-              <button
-                onClick={isFollowing ? handleUnfollow : handleFollow}
-                className={`mt-4 ml-auto rounded-lg px-4 py-2 ${
-                  isFollowing
-                    ? "bg-red-600 text-white"
-                    : "bg-purple-600 text-white"
-                }`}
-              >
-                {isFollowing ? "Unfollow" : "Follow"}
-              </button>
-            )}
+            
 
             <button
               onClick={() => setModalOpen(true)}
